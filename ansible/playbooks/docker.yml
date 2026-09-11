@@ -1,0 +1,55 @@
+---
+- name: Install Docker Engine
+  hosts: engos
+  become: true
+
+  tasks:
+    - name: Criar diretorio de chaves APT
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Baixar chave oficial do Docker
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Configurar repositorio oficial do Docker
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/docker.sources
+        mode: "0644"
+        content: |
+          Types: deb
+          URIs: https://download.docker.com/linux/ubuntu
+          Suites: {{ ansible_facts["distribution_release"] }}
+          Components: stable
+          Architectures: amd64
+          Signed-By: /etc/apt/keyrings/docker.asc
+
+    - name: Atualizar cache APT
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Instalar Docker Engine
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Ativar Docker no boot
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Adicionar engops ao grupo docker
+      ansible.builtin.user:
+        name: engops
+        groups: docker
+        append: true
