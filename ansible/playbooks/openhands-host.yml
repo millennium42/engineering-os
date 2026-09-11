@@ -1,0 +1,13 @@
+---
+- name: Prepare OpenHands host directories
+  hosts: engos
+  become: true
+
+  tasks:
+    - name: Criar diretorio persistente do OpenHands
+      ansible.builtin.file:
+        path: /home/engops/.openhands
+        state: directory
+        owner: "10001"
+        group: "10001"
+        mode: "0750"
