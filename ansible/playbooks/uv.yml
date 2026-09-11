@@ -1,0 +1,29 @@
+---
+- name: Install uv
+  hosts: engos
+  become: true
+
+  vars:
+    uv_version: "0.12.13"
+
+  tasks:
+    - name: Verificar versao atual do uv
+      ansible.builtin.command:
+        cmd: /usr/local/bin/uv --version
+      register: uv_current
+      changed_when: false
+      failed_when: false
+
+    - name: Baixar instalador oficial do uv
+      ansible.builtin.get_url:
+        url: "https://astral.sh/uv/{{ uv_version }}/install.sh"
+        dest: /tmp/uv-install.sh
+        mode: "0755"
+      when: uv_current.rc != 0 or uv_version not in uv_current.stdout
+
+    - name: Instalar versao fixada do uv
+      ansible.builtin.command:
+        cmd: /bin/sh /tmp/uv-install.sh
+      environment:
+        UV_UNMANAGED_INSTALL: /usr/local/bin
+      when: uv_current.rc != 0 or uv_version not in uv_current.stdout
