@@ -3,7 +3,8 @@ import asyncio
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from engos.workflows import HealthcheckWorkflow
+from engos.activities import get_openhands_conversation_status
+from engos.workflows import HealthcheckWorkflow, OpenHandsStatusWorkflow
 
 
 async def main() -> None:
@@ -12,7 +13,13 @@ async def main() -> None:
     worker = Worker(
         client,
         task_queue="engos-control",
-        workflows=[HealthcheckWorkflow],
+        workflows=[
+            HealthcheckWorkflow,
+            OpenHandsStatusWorkflow,
+        ],
+        activities=[
+            get_openhands_conversation_status,
+        ],
     )
 
     print("Engineering OS worker conectado em engos-control")

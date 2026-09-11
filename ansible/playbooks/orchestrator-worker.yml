@@ -4,6 +4,31 @@
   become: true
 
   tasks:
+    - name: Criar diretorio de configuracao do Engineering OS
+      ansible.builtin.file:
+        path: /etc/engineering-os
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Ler API key existente do OpenHands
+      ansible.builtin.slurp:
+        src: /home/engops/.openhands/agent-canvas/api-key.txt
+      register: openhands_api_key_file
+      no_log: true
+
+    - name: Criar arquivo de ambiente protegido do worker
+      ansible.builtin.copy:
+        dest: /etc/engineering-os/openhands.env
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          OPENHANDS_API_KEY={{ openhands_api_key_file.content | b64decode | trim }}
+      no_log: true
+      notify: Reiniciar orchestrator worker
+
     - name: Criar servico systemd do orchestrator worker
       ansible.builtin.copy:
         dest: /etc/systemd/system/engos-worker.service
@@ -20,18 +45,25 @@
           User=engops
           Group=engops
           WorkingDirectory=/home/engops/engineering-os/orchestrator
+          EnvironmentFile=/etc/engineering-os/openhands.env
           ExecStart=/usr/local/bin/uv run python -m engos.worker
           Restart=on-failure
           RestartSec=5
 
           [Install]
           WantedBy=multi-user.target
+      notify: Reiniciar orchestrator worker
 
-    - name: Recarregar systemd
-      ansible.builtin.systemd:
-        daemon_reload: true
-
-    - name: Ativar worker no boot
+    - name: Recarregar systemd e garantir worker ativo
       ansible.builtin.systemd:
         name: engos-worker
+        daemon_reload: true
         enabled: true
+        state: started
+
+  handlers:
+    - name: Reiniciar orchestrator worker
+      ansible.builtin.systemd:
+        name: engos-worker
+        daemon_reload: true
+        state: restarted
