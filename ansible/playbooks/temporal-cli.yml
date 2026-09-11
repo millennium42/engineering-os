@@ -1,0 +1,26 @@
+---
+- name: Install Temporal CLI
+  hosts: engos
+  become: true
+
+  vars:
+    temporal_version: "1.8.1"
+    temporal_sha256: "b94417b9a8760b30217f4b881dabce4b16a76a38b5e99e2eca3ce358b8030f06"
+    temporal_archive: "temporal_cli_{{ temporal_version }}_linux_amd64.tar.gz"
+
+  tasks:
+    - name: Baixar Temporal CLI
+      ansible.builtin.get_url:
+        url: "https://github.com/temporalio/cli/releases/download/v{{ temporal_version }}/{{ temporal_archive }}"
+        dest: "/tmp/{{ temporal_archive }}"
+        checksum: "sha256:{{ temporal_sha256 }}"
+        mode: "0644"
+
+    - name: Extrair Temporal CLI
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ temporal_archive }}"
+        dest: /usr/local/bin
+        remote_src: true
+        include:
+          - temporal
+        mode: "0755"
