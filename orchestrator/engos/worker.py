@@ -13,6 +13,7 @@ from engos.workflows import (
     OpenHandsStatusWorkflow,
     OpenHandsMessageWorkflow,
     OpenHandsCreateConversationWorkflow,
+    OpenHandsPrepareTaskWorkflow,
 )
 
 
@@ -27,6 +28,7 @@ async def main() -> None:
             OpenHandsStatusWorkflow,
             OpenHandsMessageWorkflow,
             OpenHandsCreateConversationWorkflow,
+            OpenHandsPrepareTaskWorkflow,
         ],
         activities=[
             create_openhands_conversation,

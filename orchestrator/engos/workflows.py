@@ -9,7 +9,12 @@ with workflow.unsafe.imports_passed_through():
         get_openhands_conversation_status,
         send_openhands_message,
     )
-    from engos.models import OpenHandsConversationInput, OpenHandsMessageInput
+    from engos.models import (
+        OpenHandsConversationInput,
+        OpenHandsMessageInput,
+        OpenHandsTaskInput,
+        OpenHandsTaskResult,
+    )
 
 
 @workflow.defn
@@ -77,4 +82,52 @@ class OpenHandsCreateConversationWorkflow:
                 initial_interval=timedelta(seconds=1),
                 maximum_attempts=3,
             ),
+        )
+
+
+@workflow.defn
+class OpenHandsPrepareTaskWorkflow:
+    @workflow.run
+    async def run(self, data: OpenHandsTaskInput) -> OpenHandsTaskResult:
+        conversation_id = str(workflow.uuid7())
+        message_id = str(workflow.uuid7())
+
+        conversation_data = OpenHandsConversationInput(
+            working_dir=data.working_dir,
+            model=data.model,
+            base_url=data.base_url,
+            conversation_id=conversation_id,
+            worktree=data.worktree,
+        )
+
+        created_conversation_id = await workflow.execute_activity(
+            create_openhands_conversation,
+            conversation_data,
+            start_to_close_timeout=timedelta(seconds=30),
+            retry_policy=RetryPolicy(
+                initial_interval=timedelta(seconds=1),
+                maximum_attempts=3,
+            ),
+        )
+
+        message_data = OpenHandsMessageInput(
+            conversation_id=created_conversation_id,
+            message=data.message,
+            message_id=message_id,
+            run=False,
+        )
+
+        await workflow.execute_activity(
+            send_openhands_message,
+            message_data,
+            start_to_close_timeout=timedelta(seconds=20),
+            retry_policy=RetryPolicy(
+                initial_interval=timedelta(seconds=1),
+                maximum_attempts=3,
+            ),
+        )
+
+        return OpenHandsTaskResult(
+            conversation_id=created_conversation_id,
+            message_id=message_id,
         )

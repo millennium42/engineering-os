@@ -20,3 +20,22 @@ class OpenHandsConversationInput:
     base_url: str
     conversation_id: str | None = None
     worktree: bool = False
+
+
+@dataclass
+class OpenHandsTaskInput:
+    """Entrada de uma tarefa completa do Engineering OS para o OpenHands."""
+
+    working_dir: str
+    model: str
+    base_url: str
+    message: str
+    worktree: bool = False
+
+
+@dataclass
+class OpenHandsTaskResult:
+    """Resultado mínimo de uma tarefa preparada no OpenHands."""
+
+    conversation_id: str
+    message_id: str
