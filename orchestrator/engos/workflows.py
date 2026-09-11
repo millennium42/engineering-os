@@ -4,7 +4,11 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
-    from engos.activities import get_openhands_conversation_status
+    from engos.activities import (
+        get_openhands_conversation_status,
+        send_openhands_message,
+    )
+    from engos.models import OpenHandsMessageInput
 
 
 @workflow.defn
@@ -21,6 +25,21 @@ class OpenHandsStatusWorkflow:
         return await workflow.execute_activity(
             get_openhands_conversation_status,
             conversation_id,
+            start_to_close_timeout=timedelta(seconds=20),
+            retry_policy=RetryPolicy(
+                initial_interval=timedelta(seconds=1),
+                maximum_attempts=3,
+            ),
+        )
+
+
+@workflow.defn
+class OpenHandsMessageWorkflow:
+    @workflow.run
+    async def run(self, data: OpenHandsMessageInput) -> bool:
+        return await workflow.execute_activity(
+            send_openhands_message,
+            data,
             start_to_close_timeout=timedelta(seconds=20),
             retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=1),

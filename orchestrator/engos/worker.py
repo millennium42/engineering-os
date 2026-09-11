@@ -3,8 +3,15 @@ import asyncio
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from engos.activities import get_openhands_conversation_status
-from engos.workflows import HealthcheckWorkflow, OpenHandsStatusWorkflow
+from engos.activities import (
+    get_openhands_conversation_status,
+    send_openhands_message,
+)
+from engos.workflows import (
+    HealthcheckWorkflow,
+    OpenHandsStatusWorkflow,
+    OpenHandsMessageWorkflow,
+)
 
 
 async def main() -> None:
@@ -16,9 +23,11 @@ async def main() -> None:
         workflows=[
             HealthcheckWorkflow,
             OpenHandsStatusWorkflow,
+            OpenHandsMessageWorkflow,
         ],
         activities=[
             get_openhands_conversation_status,
+            send_openhands_message,
         ],
     )
 
