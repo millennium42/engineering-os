@@ -17,4 +17,5 @@ class OpenHandsConversationInput:
     working_dir: str
     model: str
     base_url: str
+    conversation_id: str | None = None
     worktree: bool = False

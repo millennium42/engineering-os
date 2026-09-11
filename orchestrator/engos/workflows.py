@@ -54,9 +54,17 @@ class OpenHandsMessageWorkflow:
 class OpenHandsCreateConversationWorkflow:
     @workflow.run
     async def run(self, data: OpenHandsConversationInput) -> str:
+        conversation_data = OpenHandsConversationInput(
+            working_dir=data.working_dir,
+            conversation_id=data.conversation_id or str(workflow.uuid7()),
+            model=data.model,
+            base_url=data.base_url,
+            worktree=data.worktree,
+        )
+
         return await workflow.execute_activity(
             create_openhands_conversation,
-            data,
+            conversation_data,
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=1),

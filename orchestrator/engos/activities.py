@@ -85,6 +85,7 @@ async def create_openhands_conversation(
             "working_dir": data.working_dir,
             "kind": "LocalWorkspace",
         },
+        "conversation_id": data.conversation_id,
         "worktree": data.worktree,
         "autotitle": False,
         "agent": {
