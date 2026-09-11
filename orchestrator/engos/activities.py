@@ -32,33 +32,59 @@ from engos.models import OpenHandsConversationInput, OpenHandsMessageInput
 
 @activity.defn
 async def send_openhands_message(data: OpenHandsMessageInput) -> bool:
-    """Envia uma mensagem para uma conversa OpenHands existente."""
+    """Envia uma mensagem ao OpenHands sem duplicá-la em retries."""
 
     api_key = os.environ.get("OPENHANDS_API_KEY")
 
     if not api_key:
         raise RuntimeError("OPENHANDS_API_KEY não está definida")
 
-    url = (
+    if not data.message_id:
+        raise RuntimeError("message_id é obrigatório para envio idempotente")
+
+    base_url = (
         "http://localhost:3000/api/conversations/"
-        f"{data.conversation_id}/events"
+        f"{data.conversation_id}"
     )
 
-    payload = {
-        "role": "user",
-        "content": [
-            {
-                "type": "text",
-                "text": data.message,
-            }
-        ],
-        "run": data.run,
+    marker = f"[engos-message-id:{data.message_id}]"
+    message_text = f"{data.message}\n\n{marker}"
+
+    headers = {
+        "X-Session-API-Key": api_key,
     }
 
     async with httpx.AsyncClient(timeout=10.0) as client:
+        # Verifica se uma tentativa anterior já persistiu esta mensagem.
+        search_response = await client.get(
+            f"{base_url}/events/search",
+            headers=headers,
+            params={
+                "source": "user",
+                "body": marker,
+                "limit": 1,
+            },
+        )
+
+        search_response.raise_for_status()
+
+        if search_response.json().get("items"):
+            return True
+
+        payload = {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": message_text,
+                }
+            ],
+            "run": data.run,
+        }
+
         response = await client.post(
-            url,
-            headers={"X-Session-API-Key": api_key},
+            f"{base_url}/events",
+            headers=headers,
             json=payload,
         )
 
@@ -66,7 +92,6 @@ async def send_openhands_message(data: OpenHandsMessageInput) -> bool:
         result = response.json()
 
     return bool(result["success"])
-
 
 
 @activity.defn

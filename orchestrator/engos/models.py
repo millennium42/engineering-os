@@ -7,6 +7,7 @@ class OpenHandsMessageInput:
 
     conversation_id: str
     message: str
+    message_id: str | None = None
     run: bool = False
 
 

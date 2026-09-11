@@ -38,9 +38,16 @@ class OpenHandsStatusWorkflow:
 class OpenHandsMessageWorkflow:
     @workflow.run
     async def run(self, data: OpenHandsMessageInput) -> bool:
+        message_data = OpenHandsMessageInput(
+            conversation_id=data.conversation_id,
+            message=data.message,
+            message_id=data.message_id or str(workflow.uuid7()),
+            run=data.run,
+        )
+
         return await workflow.execute_activity(
             send_openhands_message,
-            data,
+            message_data,
             start_to_close_timeout=timedelta(seconds=20),
             retry_policy=RetryPolicy(
                 initial_interval=timedelta(seconds=1),
