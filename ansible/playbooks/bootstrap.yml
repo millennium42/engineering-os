@@ -1,0 +1,40 @@
+---
+- name: Bootstrap Engineering OS
+  hosts: engos
+  become: true
+
+  tasks:
+    - name: Configurar fuso horario
+      community.general.timezone:
+        name: America/Sao_Paulo
+
+    - name: Atualizar cache do APT
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Instalar pacotes base
+      ansible.builtin.apt:
+        name:
+          - git
+          - curl
+          - wget
+          - ca-certificates
+          - gnupg
+          - jq
+          - unzip
+          - zip
+          - build-essential
+          - cmake
+          - ninja-build
+          - pkg-config
+          - python3
+          - python3-venv
+          - python3-pip
+          - openssh-server
+          - ufw
+          - tmux
+          - htop
+          - ripgrep
+          - fd-find
+        state: present
