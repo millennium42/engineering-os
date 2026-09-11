@@ -1,0 +1,44 @@
+---
+- name: Configure Temporal Development Service
+  hosts: engos
+  become: true
+
+  tasks:
+    - name: Criar diretorio persistente do Temporal
+      ansible.builtin.file:
+        path: /var/lib/engineering-os/temporal
+        state: directory
+        owner: engops
+        group: engops
+        mode: "0750"
+
+    - name: Criar servico systemd do Temporal
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/temporal-dev.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Engineering OS Temporal Development Server
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User=engops
+          Group=engops
+          ExecStart=/usr/local/bin/temporal server start-dev --db-filename /var/lib/engineering-os/temporal/temporal.db --ip 0.0.0.0 --port 7233 --ui-port 8233
+          Restart=on-failure
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Recarregar systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Ativar e iniciar Temporal
+      ansible.builtin.systemd:
+        name: temporal-dev
+        enabled: true
+        state: started
