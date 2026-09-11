@@ -1,0 +1,37 @@
+---
+- name: Configure Engineering OS Orchestrator Worker
+  hosts: engos
+  become: true
+
+  tasks:
+    - name: Criar servico systemd do orchestrator worker
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/engos-worker.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Engineering OS Temporal Worker
+          After=network-online.target temporal-dev.service
+          Wants=network-online.target
+          Requires=temporal-dev.service
+
+          [Service]
+          Type=simple
+          User=engops
+          Group=engops
+          WorkingDirectory=/home/engops/engineering-os/orchestrator
+          ExecStart=/usr/local/bin/uv run python -m engos.worker
+          Restart=on-failure
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Recarregar systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Ativar worker no boot
+      ansible.builtin.systemd:
+        name: engos-worker
+        enabled: true
