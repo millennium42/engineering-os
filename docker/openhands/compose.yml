@@ -1,0 +1,12 @@
+services:
+  agent-canvas:
+    image: ghcr.io/openhands/agent-canvas@sha256:64d73ec6c066b425e872e1a58d52d8b5d901b617a8e945b1430415c5fd4ea4d1
+    container_name: engos-agent-canvas
+    restart: unless-stopped
+
+    ports:
+      - "3000:8000"
+
+    volumes:
+      - "${HOME}/.openhands:/home/openhands/.openhands"
+      - "${HOME}/projects:/projects"
