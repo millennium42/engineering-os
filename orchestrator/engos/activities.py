@@ -27,7 +27,7 @@ async def get_openhands_conversation_status(conversation_id: str) -> str:
     return data["execution_status"]
 
 
-from engos.models import OpenHandsMessageInput
+from engos.models import OpenHandsConversationInput, OpenHandsMessageInput
 
 
 @activity.defn
@@ -66,3 +66,46 @@ async def send_openhands_message(data: OpenHandsMessageInput) -> bool:
         result = response.json()
 
     return bool(result["success"])
+
+
+
+@activity.defn
+async def create_openhands_conversation(
+    data: OpenHandsConversationInput,
+) -> str:
+    """Cria uma conversa OpenHands e retorna seu UUID."""
+
+    api_key = os.environ.get("OPENHANDS_API_KEY")
+
+    if not api_key:
+        raise RuntimeError("OPENHANDS_API_KEY não está definida")
+
+    payload = {
+        "workspace": {
+            "working_dir": data.working_dir,
+            "kind": "LocalWorkspace",
+        },
+        "worktree": data.worktree,
+        "autotitle": False,
+        "agent": {
+            "kind": "Agent",
+            "llm": {
+                "model": data.model,
+                "api_key": "placeholder",
+                "base_url": data.base_url,
+            },
+            "tools": [],
+        },
+    }
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.post(
+            "http://localhost:3000/api/conversations",
+            headers={"X-Session-API-Key": api_key},
+            json=payload,
+        )
+
+        response.raise_for_status()
+        result = response.json()
+
+    return result["id"]
