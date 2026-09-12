@@ -74,7 +74,7 @@ class OpenHandsSupervisedTaskWorkflow:
             send_openhands_message,
             OpenHandsMessageInput(
                 conversation_id=conversation_id,
-                message=data.message,
+                message=(f"AUTHORIZED_WORKSPACE_ROOT: {openhands_working_dir}\n" f"All file reads, writes, edits and terminal operations for this task MUST stay inside this directory. " f"Never use /workspace or any other project directory. Use absolute paths rooted at {openhands_working_dir}.\n\n" f"TASK:\n{data.message}"),
                 message_id=message_id,
                 run=True,
             ),
@@ -112,6 +112,9 @@ class OpenHandsSupervisedTaskWorkflow:
             start_to_close_timeout=timedelta(seconds=15),
             retry_policy=retry,
         )
+
+        if not git_status:
+            raise RuntimeError("OpenHands reported finished but produced no Git-visible changes")
 
         if status != "finished":
             raise RuntimeError(

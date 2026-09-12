@@ -119,7 +119,7 @@ async def create_openhands_conversation(
             "kind": "Agent",
             "llm": {
                 "model": data.model,
-                "api_key": "placeholder",
+                "api_key": os.environ["LLM_API_KEY"],
                 "base_url": data.base_url,
                 "native_tool_calling": False,
                 "max_input_tokens": 28672,
