@@ -121,8 +121,11 @@ async def create_openhands_conversation(
                 "model": data.model,
                 "api_key": "placeholder",
                 "base_url": data.base_url,
+                "native_tool_calling": False,
+                "max_input_tokens": 28672,
+                "max_output_tokens": 4096,
             },
-            "tools": [],
+            "tools": [{"name": "terminal", "params": {}}, {"name": "file_editor", "params": {}}, {"name": "task_tracker", "params": {}}],
         },
     }
 
