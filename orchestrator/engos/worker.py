@@ -19,6 +19,9 @@ from engos.workflows import (
     OpenHandsPrepareTaskWorkflow,
 )
 
+from engos.supervised_activities import get_git_worktree_status, normalize_worktree_permissions
+from engos.supervised_workflows import OpenHandsSupervisedTaskWorkflow
+
 
 async def main() -> None:
     client = await Client.connect("localhost:7233")
@@ -29,6 +32,7 @@ async def main() -> None:
         workflows=[
             GitWorktreeWorkflow,
             OpenHandsIsolatedTaskWorkflow,
+            OpenHandsSupervisedTaskWorkflow,
             HealthcheckWorkflow,
             OpenHandsStatusWorkflow,
             OpenHandsMessageWorkflow,
@@ -40,6 +44,8 @@ async def main() -> None:
             create_openhands_conversation,
             get_openhands_conversation_status,
             send_openhands_message,
+            normalize_worktree_permissions,
+            get_git_worktree_status,
         ],
     )
 
