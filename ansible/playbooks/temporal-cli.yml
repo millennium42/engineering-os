@@ -17,6 +17,7 @@
         mode: "0644"
 
     - name: Extrair Temporal CLI
+      when: not ansible_check_mode
       ansible.builtin.unarchive:
         src: "/tmp/{{ temporal_archive }}"
         dest: /usr/local/bin

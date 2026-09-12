@@ -1,0 +1,20 @@
+---
+engos_user: engops
+engos_group: engops
+engos_home: /home/engops
+engos_repo_root: /home/engops/engineering-os
+engos_orchestrator_dir: /home/engops/engineering-os/orchestrator
+engos_config_dir: /home/engops/.config/engineering-os
+engos_system_config_dir: /etc/engineering-os
+engos_projects_root: /home/engops/projects
+openhands_container_projects_root: /projects
+openhands_state_dir: /home/engops/.openhands
+openhands_host: 127.0.0.1
+openhands_host_port: 3000
+openhands_container_port: 8000
+temporal_host: 127.0.0.1
+temporal_port: 7233
+temporal_ui_port: 8233
+temporal_task_queue: engos-control
+temporal_data_dir: /var/lib/engineering-os/temporal
+engos_worker_service: engos-worker

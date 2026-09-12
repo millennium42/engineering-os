@@ -6,7 +6,7 @@
   tasks:
     - name: Criar diretorio persistente do OpenHands
       ansible.builtin.file:
-        path: /home/engops/.openhands
+        path: "{{ openhands_state_dir }}"
         state: directory
         owner: "10001"
         group: "10001"
@@ -19,17 +19,17 @@
 
     - name: Garantir diretorio de projetos
       ansible.builtin.file:
-        path: /home/engops/projects
+        path: "{{ engos_projects_root }}"
         state: directory
-        owner: engops
-        group: engops
-        mode: "0755"
+        owner: "{{ engos_user }}"
+        group: "{{ engos_group }}"
+        mode: "0775"
 
     - name: Permitir acesso do OpenHands aos projetos
       ansible.builtin.command:
-        cmd: setfacl -R -m u:10001:rwX,u:engops:rwX /home/engops/projects
+        cmd: setfacl -R -m u:10001:rwX,u:{{ engos_user }}:rwX {{ engos_projects_root }}
       changed_when: false
 
     - name: Configurar ACL padrao para novos diretorios e arquivos
-      ansible.builtin.shell: find /home/engops/projects -type d -exec setfacl -m d:u:10001:rwX,d:u:engops:rwX {} +
+      ansible.builtin.shell: find {{ engos_projects_root }} -type d -exec setfacl -m d:u:10001:rwX,d:u:{{ engos_user }}:rwX {} +
       changed_when: false

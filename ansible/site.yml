@@ -1,0 +1,8 @@
+---
+- import_playbook: playbooks/bootstrap.yml
+- import_playbook: playbooks/docker.yml
+- import_playbook: playbooks/uv.yml
+- import_playbook: playbooks/temporal-cli.yml
+- import_playbook: playbooks/temporal-dev.yml
+- import_playbook: playbooks/openhands-host.yml
+- import_playbook: playbooks/orchestrator-worker.yml

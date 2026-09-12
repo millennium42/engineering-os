@@ -6,7 +6,7 @@
   tasks:
     - name: Criar diretorio de configuracao do Engineering OS
       ansible.builtin.file:
-        path: /etc/engineering-os
+        path: "{{ engos_system_config_dir }}"
         state: directory
         owner: root
         group: root
@@ -14,19 +14,54 @@
 
     - name: Ler API key existente do OpenHands
       ansible.builtin.slurp:
-        src: /home/engops/.openhands/agent-canvas/api-key.txt
+        src: "{{ openhands_state_dir }}/agent-canvas/api-key.txt"
       register: openhands_api_key_file
       no_log: true
 
     - name: Criar arquivo de ambiente protegido do worker
       ansible.builtin.copy:
-        dest: /etc/engineering-os/openhands.env
+        dest: "{{ engos_system_config_dir }}/openhands.env"
         owner: root
         group: root
         mode: "0600"
         content: |
           OPENHANDS_API_KEY={{ openhands_api_key_file.content | b64decode | trim }}
       no_log: true
+      notify: Reiniciar orchestrator worker
+
+    - name: Ler ambiente privado do LLM
+      ansible.builtin.slurp:
+        src: "{{ engos_config_dir }}/llm-secrets.env"
+      register: llm_env_file
+      no_log: true
+
+    - name: Criar arquivo de ambiente protegido do LLM
+      ansible.builtin.copy:
+        dest: "{{ engos_system_config_dir }}/llm.env"
+        owner: root
+        group: root
+        mode: "0600"
+        content: "{{ llm_env_file.content | b64decode }}"
+      no_log: true
+      notify: Reiniciar orchestrator worker
+
+    - name: Criar diretorio de drop-ins do worker
+      ansible.builtin.file:
+        path: /etc/systemd/system/{{ engos_worker_service }}.service.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Criar drop-in do ambiente LLM
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/{{ engos_worker_service }}.service.d/llm.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Service]
+          EnvironmentFile={{ engos_system_config_dir }}/llm.env
       notify: Reiniciar orchestrator worker
 
     - name: Criar servico systemd do orchestrator worker
@@ -42,10 +77,10 @@
 
           [Service]
           Type=simple
-          User=engops
-          Group=engops
-          WorkingDirectory=/home/engops/engineering-os/orchestrator
-          EnvironmentFile=/etc/engineering-os/openhands.env
+          User={{ engos_user }}
+          Group={{ engos_group }}
+          WorkingDirectory={{ engos_orchestrator_dir }}
+          EnvironmentFile={{ engos_system_config_dir }}/openhands.env
           ExecStart=/usr/local/bin/uv run python -m engos.worker
           Restart=on-failure
           RestartSec=5
@@ -56,7 +91,7 @@
 
     - name: Recarregar systemd e garantir worker ativo
       ansible.builtin.systemd:
-        name: engos-worker
+        name: "{{ engos_worker_service }}"
         daemon_reload: true
         enabled: true
         state: started
@@ -64,6 +99,6 @@
   handlers:
     - name: Reiniciar orchestrator worker
       ansible.builtin.systemd:
-        name: engos-worker
+        name: "{{ engos_worker_service }}"
         daemon_reload: true
         state: restarted

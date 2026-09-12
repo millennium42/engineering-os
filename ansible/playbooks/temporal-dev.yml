@@ -6,10 +6,10 @@
   tasks:
     - name: Criar diretorio persistente do Temporal
       ansible.builtin.file:
-        path: /var/lib/engineering-os/temporal
+        path: "{{ temporal_data_dir }}"
         state: directory
-        owner: engops
-        group: engops
+        owner: "{{ engos_user }}"
+        group: "{{ engos_group }}"
         mode: "0750"
 
     - name: Criar servico systemd do Temporal
@@ -24,9 +24,9 @@
 
           [Service]
           Type=simple
-          User=engops
-          Group=engops
-          ExecStart=/usr/local/bin/temporal server start-dev --db-filename /var/lib/engineering-os/temporal/temporal.db --ip 0.0.0.0 --port 7233 --ui-port 8233
+          User={{ engos_user }}
+          Group={{ engos_group }}
+          ExecStart=/usr/local/bin/temporal server start-dev --db-filename {{ temporal_data_dir }}/temporal.db --ip 0.0.0.0 --port {{ temporal_port }} --ui-port {{ temporal_ui_port }}
           Restart=on-failure
           RestartSec=5
 
