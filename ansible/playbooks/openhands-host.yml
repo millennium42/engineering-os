@@ -11,3 +11,25 @@
         owner: "10001"
         group: "10001"
         mode: "0750"
+
+    - name: Instalar suporte a ACL
+      ansible.builtin.apt:
+        name: acl
+        state: present
+
+    - name: Garantir diretorio de projetos
+      ansible.builtin.file:
+        path: /home/engops/projects
+        state: directory
+        owner: engops
+        group: engops
+        mode: "0755"
+
+    - name: Permitir acesso do OpenHands aos projetos
+      ansible.builtin.command:
+        cmd: setfacl -R -m u:10001:rwX,u:engops:rwX /home/engops/projects
+      changed_when: false
+
+    - name: Configurar ACL padrao para novos diretorios e arquivos
+      ansible.builtin.shell: find /home/engops/projects -type d -exec setfacl -m d:u:10001:rwX,d:u:engops:rwX {} +
+      changed_when: false
