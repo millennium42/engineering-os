@@ -39,3 +39,13 @@ class OpenHandsTaskResult:
 
     conversation_id: str
     message_id: str
+
+
+@dataclass
+class GitWorktreeInput:
+    """Dados para provisionar um worktree Git isolado."""
+
+    repo_path: str
+    worktree_path: str
+    branch_name: str
+    base_ref: str = "HEAD"

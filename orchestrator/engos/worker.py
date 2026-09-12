@@ -4,11 +4,13 @@ from temporalio.client import Client
 from temporalio.worker import Worker
 
 from engos.activities import (
+    create_git_worktree,
     create_openhands_conversation,
     get_openhands_conversation_status,
     send_openhands_message,
 )
 from engos.workflows import (
+    GitWorktreeWorkflow,
     HealthcheckWorkflow,
     OpenHandsStatusWorkflow,
     OpenHandsMessageWorkflow,
@@ -24,6 +26,7 @@ async def main() -> None:
         client,
         task_queue="engos-control",
         workflows=[
+            GitWorktreeWorkflow,
             HealthcheckWorkflow,
             OpenHandsStatusWorkflow,
             OpenHandsMessageWorkflow,
@@ -31,6 +34,7 @@ async def main() -> None:
             OpenHandsPrepareTaskWorkflow,
         ],
         activities=[
+            create_git_worktree,
             create_openhands_conversation,
             get_openhands_conversation_status,
             send_openhands_message,

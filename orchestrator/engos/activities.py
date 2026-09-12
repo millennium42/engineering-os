@@ -1,4 +1,6 @@
+import asyncio
 import os
+from pathlib import Path
 
 import httpx
 from temporalio import activity
@@ -27,7 +29,7 @@ async def get_openhands_conversation_status(conversation_id: str) -> str:
     return data["execution_status"]
 
 
-from engos.models import OpenHandsConversationInput, OpenHandsMessageInput
+from engos.models import GitWorktreeInput, OpenHandsConversationInput, OpenHandsMessageInput
 
 
 @activity.defn
@@ -135,3 +137,50 @@ async def create_openhands_conversation(
         result = response.json()
 
     return result["id"]
+
+
+async def _run_git(*args: str) -> str:
+    process = await asyncio.create_subprocess_exec(
+        "git",
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    if process.returncode != 0:
+        raise RuntimeError(stderr.decode().strip() or stdout.decode().strip())
+    return stdout.decode().strip()
+
+
+@activity.defn
+async def create_git_worktree(data: GitWorktreeInput) -> str:
+    """Cria de forma idempotente um worktree Git para uma tarefa."""
+
+    repo_path = str(Path(data.repo_path).expanduser().resolve())
+    worktree_path = str(Path(data.worktree_path).expanduser().resolve())
+    Path(worktree_path).parent.mkdir(parents=True, exist_ok=True)
+
+    await _run_git("-C", repo_path, "rev-parse", "--git-dir")
+
+    if Path(worktree_path).exists():
+        current_branch = await _run_git("-C", worktree_path, "branch", "--show-current")
+        if current_branch != data.branch_name:
+            raise RuntimeError(
+                f"Worktree {worktree_path} já existe na branch {current_branch!r}, "
+                f"esperado {data.branch_name!r}"
+            )
+        return worktree_path
+
+    branches = await _run_git(
+        "-C", repo_path, "for-each-ref", "--format=%(refname:short)", "refs/heads"
+    )
+
+    if data.branch_name in branches.splitlines():
+        await _run_git("-C", repo_path, "worktree", "add", worktree_path, data.branch_name)
+    else:
+        await _run_git(
+            "-C", repo_path, "worktree", "add", "-b", data.branch_name,
+            worktree_path, data.base_ref
+        )
+
+    return worktree_path

@@ -5,11 +5,13 @@ from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
     from engos.activities import (
+        create_git_worktree,
         create_openhands_conversation,
         get_openhands_conversation_status,
         send_openhands_message,
     )
     from engos.models import (
+        GitWorktreeInput,
         OpenHandsConversationInput,
         OpenHandsMessageInput,
         OpenHandsTaskInput,
@@ -130,4 +132,19 @@ class OpenHandsPrepareTaskWorkflow:
         return OpenHandsTaskResult(
             conversation_id=created_conversation_id,
             message_id=message_id,
+        )
+
+
+@workflow.defn
+class GitWorktreeWorkflow:
+    @workflow.run
+    async def run(self, data: GitWorktreeInput) -> str:
+        return await workflow.execute_activity(
+            create_git_worktree,
+            data,
+            start_to_close_timeout=timedelta(seconds=30),
+            retry_policy=RetryPolicy(
+                initial_interval=timedelta(seconds=1),
+                maximum_attempts=3,
+            ),
         )
