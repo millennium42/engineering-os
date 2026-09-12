@@ -49,3 +49,29 @@ class GitWorktreeInput:
     worktree_path: str
     branch_name: str
     base_ref: str = "HEAD"
+
+
+@dataclass
+class OpenHandsIsolatedTaskInput:
+    """Tarefa OpenHands executada em worktree Git isolado."""
+
+    repo_path: str
+    worktree_path: str
+    branch_name: str
+    model: str
+    base_url: str
+    message: str
+    base_ref: str = "HEAD"
+    host_projects_root: str = "/home/engops/projects"
+    openhands_projects_root: str = "/projects"
+    run: bool = False
+
+
+@dataclass
+class OpenHandsIsolatedTaskResult:
+    """Identificadores e caminhos de uma tarefa isolada preparada."""
+
+    worktree_path: str
+    openhands_working_dir: str
+    conversation_id: str
+    message_id: str

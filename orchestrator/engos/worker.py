@@ -11,6 +11,7 @@ from engos.activities import (
 )
 from engos.workflows import (
     GitWorktreeWorkflow,
+    OpenHandsIsolatedTaskWorkflow,
     HealthcheckWorkflow,
     OpenHandsStatusWorkflow,
     OpenHandsMessageWorkflow,
@@ -27,6 +28,7 @@ async def main() -> None:
         task_queue="engos-control",
         workflows=[
             GitWorktreeWorkflow,
+            OpenHandsIsolatedTaskWorkflow,
             HealthcheckWorkflow,
             OpenHandsStatusWorkflow,
             OpenHandsMessageWorkflow,
