@@ -21,6 +21,7 @@ with workflow.unsafe.imports_passed_through():
     from engos.supervised_activities import (
         get_git_worktree_status,
         normalize_worktree_permissions,
+        record_supervised_evidence,
     )
 
 
@@ -110,6 +111,28 @@ class OpenHandsSupervisedTaskWorkflow:
             get_git_worktree_status,
             worktree_path,
             start_to_close_timeout=timedelta(seconds=15),
+            retry_policy=retry,
+        )
+
+        info = workflow.info()
+        evidence_dir = await workflow.execute_activity(
+            record_supervised_evidence,
+            {
+                "workflow_id": info.workflow_id,
+                "run_id": info.run_id,
+                "repo_path": data.repo_path,
+                "worktree_path": worktree_path,
+                "branch_name": data.branch_name,
+                "base_ref": data.base_ref,
+                "model": data.model,
+                "base_url": data.base_url,
+                "message": data.message,
+                "conversation_id": conversation_id,
+                "message_id": message_id,
+                "execution_status": status,
+                "git_status": git_status,
+            },
+            start_to_close_timeout=timedelta(seconds=30),
             retry_policy=retry,
         )
 

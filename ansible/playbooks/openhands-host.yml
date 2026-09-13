@@ -10,7 +10,7 @@
         state: directory
         owner: "10001"
         group: "10001"
-        mode: "0750"
+        mode: "0777"
 
     - name: Instalar suporte a ACL
       ansible.builtin.apt:

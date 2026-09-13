@@ -19,7 +19,7 @@ from engos.workflows import (
     OpenHandsPrepareTaskWorkflow,
 )
 
-from engos.supervised_activities import get_git_worktree_status, normalize_worktree_permissions
+from engos.supervised_activities import get_git_worktree_status, normalize_worktree_permissions, record_supervised_evidence
 from engos.supervised_workflows import OpenHandsSupervisedTaskWorkflow
 
 
@@ -46,6 +46,7 @@ async def main() -> None:
             send_openhands_message,
             normalize_worktree_permissions,
             get_git_worktree_status,
+            record_supervised_evidence,
         ],
     )
 
